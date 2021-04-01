@@ -1,41 +1,25 @@
-FROM python:3.7.9
+FROM python:3.9-alpine
 
-# based on https://github.com/pfichtner/docker-mqttwarn
+WORKDIR /app
 
-# install python libraries (TODO: any others?)
-#RUN pip install paho-mqtt broadlink
+# Get the files from the repository
+RUN wget https://github.com/chavaone/broadlink-mqtt/archive/refs/heads/master.zip -O /tmp/broadlink.zip \
+    && unzip /tmp/broadlink.zip -d /tmp \
+    && cp -R  /tmp/broadlink-mqtt-master/* /app  \
+    && rm -rf /tmp/broalink*
 
-# build /opt/mqttwarn
-RUN mkdir -p /opt/broadlink-mqtt
-WORKDIR /opt/broadlink-mqtt
-RUN mkdir -p /var/log/broadlink
+#Install systema and Python dependencies
+RUN    apk update \
+    && apk add gcc musl-dev libffi-dev openssl-dev python3-dev \
+    && CRYPTOGRAPHY_DONT_BUILD_RUST=1 pip install -r requirements.txt \
+    && apk del gcc \
+    && rm -rf /var/cache/apk/*
 
-COPY ./requirements.txt /opt/broadlink-mqtt
-RUN pip install -r /opt/broadlink-mqtt/requirements.txt
-
-
-# add user mqttwarn to image
-RUN groupadd -r broadlink && useradd -r -g broadlink broadlink
-RUN chown -R broadlink:broadlink /opt/broadlink-mqtt
-RUN chown -R broadlink:broadlink /var/log/broadlink
-#RUN chown -R broadlink /home/broadlink
-
-# process run as mqttwarn user
-USER broadlink
-
-# conf file from host
-VOLUME ["/opt/broadlink-mqtt/conf"]
-
-# commands dir
-VOLUME ["/opt/broadlink-mqtt/commands/"]
+VOLUME ["/app/conf", "/app/commands", "/app/macros"]
 
 # set conf path
-ENV BROADLINKMQTTCONFIG="/opt/broadlink-mqtt/conf/mqtt.conf"
-ENV BROADLINKMQTTCONFIGCUSTOM="/opt/broadlink-mqtt/conf/custom.conf"
-
-# finally, copy the current code (ideally we'd copy only what we need, but it
-#  is not clear what that is, yet)
-COPY . /opt/broadlink-mqtt
+ENV BROADLINKMQTTCONFIG="/app/conf/mqtt.conf"
+ENV BROADLINKMQTTCONFIGCUSTOM="/app/conf/custom.conf"
 
 # run process
 CMD python mqtt.py
