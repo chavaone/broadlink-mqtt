@@ -183,11 +183,11 @@ def on_message(client, device, msg):
 
         # RM2/RM4 record/replay control
         if device.type in ('RM2', 'RM4', 'RM4MINI'):
-            file = dirname + "commands/" + command
-            handy_file = file + '/' + action
+            file = os.path.join(dirname, "commands", command)
+            handy_file = os.path.join(file, action)
 
             if command == 'macro':
-                file = dirname + "macros/" + action
+                file = os.path.join(dirname, "macros", action)
                 macro(device, file)
                 return
             elif action == '' or action == 'auto':
@@ -209,7 +209,7 @@ def on_message(client, device, msg):
                 replay(device, file)
                 return
             elif action == 'macro':
-                file = dirname + "macros/" + command
+                file = os.path.join(dirname, "macros", action)
                 macro(device, file)
                 return
 
