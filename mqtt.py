@@ -22,10 +22,10 @@ except ImportError:
     HAVE_TLS = False
 
 # read initial config files
-dirname = os.path.dirname(os.path.abspath(__file__)) + '/'
-logging.config.fileConfig(dirname + 'logging.conf')
-CONFIG = os.getenv('BROADLINKMQTTCONFIG', dirname + 'mqtt.conf')
-CONFIG_CUSTOM = os.getenv('BROADLINKMQTTCONFIGCUSTOM', dirname + 'custom.conf')
+dirname = os.path.dirname(os.path.abspath(__file__))
+logging.config.fileConfig(os.path.join(dirname, 'conf', 'logging.conf'))
+CONFIG = os.getenv('BROADLINKMQTTCONFIG', os.path.join(dirname, 'conf', 'mqtt.conf'))
+CONFIG_CUSTOM = os.getenv('BROADLINKMQTTCONFIGCUSTOM', os.path.join(dirname, 'conf', 'custom.conf'))
 
 
 class Config(object):
@@ -182,7 +182,7 @@ def on_message(client, device, msg):
             return
 
         # RM2/RM4 record/replay control
-        if device.type == 'RM2' or device.type == 'RM4':
+        if device.type in ('RM2', 'RM4', 'RM4MINI'):
             file = dirname + "commands/" + command
             handy_file = file + '/' + action
 
